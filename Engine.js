@@ -146,6 +146,23 @@ function stats(state, now) {
 var MASTERED_BOX = 3
 var GUIDED_BOX = 2
 function emptyProgress() { return { version: 1, items: {} } }
+// Rebuild progress read from disk into the exact expected shape, so a
+// corrupted or hand-edited file (odd keys such as __proto__, strings,
+// huge numbers) cannot leak into the trainer.
+function sanitizeProgress(data) {
+  var out = emptyProgress()
+  var items = data && typeof data === 'object' && data.items && typeof data.items === 'object' ? data.items : {}
+  function count(value, max) { value = Math.floor(Number(value)); return isFinite(value) && value > 0 ? Math.min(value, max) : 0 }
+  Object.keys(items).forEach(function(id) {
+    if (!/^[A-Za-z0-9+._-]{1,80}$/.test(id) || id === '__proto__' || id === 'constructor' || id === 'prototype') return
+    var item = items[id]
+    if (!item || typeof item !== 'object') return
+    var pressed = typeof item.lastPressed === 'string' && /^[A-Z0-9+ ]{0,60}$/.test(item.lastPressed) ? item.lastPressed : ''
+    out.items[id] = { correct: count(item.correct, 1e6), wrong: count(item.wrong, 1e6), box: count(item.box, 4),
+      lastPressed: pressed, updated: count(item.updated, 1e15) }
+  })
+  return out
+}
 function memory(progress, id) {
   var found = progress && progress.items && progress.items[id]
   return Object.assign({ correct: 0, wrong: 0, box: 0, lastPressed: '', updated: 0 }, found || {})
@@ -208,5 +225,5 @@ function findByChord(items, value) {
   return items.filter(function(item) { return matches(item, value) })[0] || null
 }
 if (typeof module !== 'undefined') module.exports = { normalizedKey: normalizedKey, chord: chord, bindingKey: bindingKey, keycodeName: keycodeName, textKeys: textKeys, withTextKeys: withTextKeys, extraLessons: extraLessons, matches: matches, usable: usable, resolve: resolve, categoryItems: categoryItems, shuffle: shuffle, deck: deck, initial: initial, hint: hint, answer: answer, stats: stats,
-  emptyProgress: emptyProgress, memory: memory, record: record, mastered: mastered, guided: guided, mistakes: mistakes,
+  emptyProgress: emptyProgress, sanitizeProgress: sanitizeProgress, memory: memory, record: record, mastered: mastered, guided: guided, mistakes: mistakes,
   learnWeight: learnWeight, learnDeck: learnDeck, requeue: requeue, findByChord: findByChord }

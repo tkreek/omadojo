@@ -141,3 +141,14 @@ test('focus and swap cover all four directions',()=>{
  assert.equal(lessons.filter(l=>l.family==='resize').length,12);
  for(const fam of ['ws-switch','ws-move','ws-silent']) assert.equal(lessons.filter(l=>l.family===fam).length,10);
 });
+test('progress loaded from disk is rebuilt into a safe shape',()=>{
+ const raw=JSON.parse('{"version":1,"items":{"__proto__":{"box":4},"close":{"correct":"3","wrong":-2,"box":99,"lastPressed":"SUPER+Q","evil":"x"},"bad id!":{"box":1},"float":{"lastPressed":"<b>x</b>"},"n":null}}');
+ const p=E.sanitizeProgress(raw);
+ assert.deepEqual(Object.keys(p.items).sort(),['close','float']);
+ assert.deepEqual(p.items.close,{correct:3,wrong:0,box:4,lastPressed:'SUPER+Q',updated:0});
+ assert.equal(p.items.float.lastPressed,'');
+ assert.equal(Object.getPrototypeOf(p.items),Object.prototype);
+ assert.equal(E.memory(p,'toString').box,0);
+ assert.deepEqual(E.sanitizeProgress(null),E.emptyProgress());
+ assert.deepEqual(E.sanitizeProgress('nonsense'),E.emptyProgress());
+});

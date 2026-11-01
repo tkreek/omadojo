@@ -27,7 +27,7 @@ If you want a dedicated shortcut, add an unused combination to `~/.config/hypr/b
 o.bind("SUPER + CTRL + ALT + D", "Omadojo", { panel = "io.github.tkreek.omadojo" })
 ```
 
-Then run `hyprctl reload` and `hyprctl configerrors`. Installing Omadojo itself does not edit your Hyprland config or add a global shortcut. A small service keeps a launcher entry at `~/.local/share/applications/omadojo.desktop`; it only rewrites a file carrying its `X-Omadojo-Managed` marker, so an edited copy is left alone.
+Then run `hyprctl reload` and `hyprctl configerrors`. Installing Omadojo itself does not edit your Hyprland config or add a global shortcut. A small service keeps a launcher entry at `~/.local/share/applications/omadojo.desktop` and deletes it again when the plugin is disabled or removed. It only rewrites or deletes a file carrying its `X-Omadojo-Managed` marker, so an edited copy is left alone, and it writes atomically so a symlink at that path is replaced rather than followed.
 
 ## Practice
 
@@ -80,7 +80,7 @@ Hyprland's hide-cursor-on-keypress setting. Your previous cursor preference is
 restored on close or process failure; desktop config files are never edited.
 The pointer uses an explicit arrow shape over the practice surface.
 
-Only the active practice session captures keys. Closing the overlay returns keyboard focus to your desktop. The plugin has no network access of its own and does not log typed input; the only thing it stores is per-shortcut mastery in `~/.local/state/omadojo/progress.json` (delete it to start fresh).
+Only the active practice session captures keys. Closing the overlay returns keyboard focus to your desktop. The plugin has no network access of its own and does not log typed input; the only thing it stores is per-shortcut mastery in `~/.local/state/omadojo/progress.json` (delete it to start fresh). That file is validated and rebuilt into a fixed shape when loaded, so a corrupted or hand-edited copy cannot inject unexpected data.
 
 ## Update / remove
 

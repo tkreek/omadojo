@@ -45,6 +45,7 @@ Item {
   // Learning memory, persisted between sessions.
   property var progress: Engine.emptyProgress()
   property var roundMistakes: []
+  readonly property string capturePath: decodeURIComponent(Qt.resolvedUrl("capture.py").toString().replace(/^file:\/\//, ""))
   readonly property string stateDir: Quickshell.env("HOME") + "/.local/state/omadojo"
   readonly property int masteredCount: { var p = progress; return available.filter(function(item) { return Engine.mastered(p, item.id) }).length }
   readonly property int mistakeCount: Engine.mistakes(available, progress).length
@@ -171,8 +172,9 @@ Item {
     id: progressFile
     path: root.stateDir + "/progress.json"
     printErrors: false
+    atomicWrites: true
     onLoaded: {
-      try { var data = JSON.parse(text()); if (data && data.items) root.progress = data }
+      try { root.progress = Engine.sanitizeProgress(JSON.parse(text())) }
       catch (e) { console.warn("Omadojo progress:", String(e)) }
     }
   }
@@ -214,7 +216,7 @@ Item {
   }
   Process {
     id: cursorGuard
-    command: ["python3", Qt.resolvedUrl("capture.py").toString().replace(/^file:\/\//, ""), "--cursor"]
+    command: ["python3", root.capturePath, "--cursor"]
     stdinEnabled: true
     stdout: SplitParser {
       onRead: function(data) {
@@ -227,7 +229,7 @@ Item {
 
   Process {
     id: capture
-    command: ["python3", Qt.resolvedUrl("capture.py").toString().replace(/^file:\/\//, "")]
+    command: ["python3", root.capturePath]
     stdinEnabled: true
     stdout: SplitParser {
       onRead: function(data) {
