@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.tkreek.omadojo",
   "name": "Omadojo",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": "Thomas Kreek",
   "description": "Build Omarchy muscle memory with visual shortcut drills, time and accuracy scores, and a simulated desktop.",
   "kinds": [

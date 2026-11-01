@@ -5,6 +5,7 @@ Rectangle {
   id: root
   property string scene: "welcome"
   property bool after: false
+  property bool animateChanges: true
   property string applicationId: "terminal"
   property string appLabel: "Terminal"
   property color accent
@@ -74,7 +75,9 @@ Rectangle {
       readonly property bool oneWindow: root.full || root.closed || (root.scene === "launch" && !root.after)
       readonly property int position: swap ? 1 - index : index
       readonly property real usableHeight: root.height - 80
-      visible: !(subject && root.closed) && !(index === 0 && root.full) && !(subject && root.scene === "launch" && !root.after)
+      opacity: (subject && root.closed) || (index === 0 && root.full) || (subject && root.scene === "launch" && !root.after) ? 0 : 1
+      visible: opacity > 0
+      scale: subject && root.scene === "launch" && !root.after ? 0.95 : 1
       x: root.full && subject ? 8 : root.overlapping && subject ? root.width * 0.21 : oneWindow ? 12 : 12 + position * (root.width - 16) / 2
       y: root.overlapping && subject ? 62 : 42
       width: root.full && subject ? root.width - 16 : root.overlapping && subject ? root.width * 0.72 : oneWindow ? root.width - 24 : (root.width - 34) / 2
@@ -84,14 +87,21 @@ Rectangle {
       kind: root.otherWorkspace ? (root.scene === "move" && subject ? "terminal" : index === 0 ? "files" : "editor") : subject && root.scene === "launch" ? root.appKind : index === 0 ? "terminal" : "browser"
       title: root.otherWorkspace ? (root.scene === "move" && subject ? "Terminal · moved to workspace 2" : index === 0 ? "Files — Projects" : "Editor — notes.md") : subject && root.scene === "launch" ? root.appLabel : index === 0 ? "Terminal — ~/Projects" : "Browser — Omarchy"
       accent: root.accent; foreground: root.foreground; background: root.background
-      Behavior on x { NumberAnimation { duration: Style.duration(180); easing.type: Easing.OutCubic } }
-      Behavior on y { NumberAnimation { duration: Style.duration(180); easing.type: Easing.OutCubic } }
-      Behavior on width { NumberAnimation { duration: Style.duration(180); easing.type: Easing.OutCubic } }
+      Behavior on x { enabled: root.animateChanges; NumberAnimation { duration: Style.duration(180); easing.type: Easing.OutCubic } }
+      Behavior on y { enabled: root.animateChanges; NumberAnimation { duration: Style.duration(180); easing.type: Easing.OutCubic } }
+      Behavior on width { enabled: root.animateChanges; NumberAnimation { duration: Style.duration(180); easing.type: Easing.OutCubic } }
+      Behavior on height { enabled: root.animateChanges; NumberAnimation { duration: Style.duration(180); easing.type: Easing.OutCubic } }
+      Behavior on opacity { enabled: root.animateChanges; NumberAnimation { duration: Style.duration(160); easing.type: Easing.OutCubic } }
+      Behavior on scale { enabled: root.animateChanges; NumberAnimation { duration: Style.duration(180); easing.type: Easing.OutCubic } }
     }
   }
 
   Rectangle {
-    visible: root.menuOpen
+    opacity: root.menuOpen ? 1 : 0
+    visible: opacity > 0
+    scale: root.menuOpen ? 1 : 0.95
+    Behavior on opacity { enabled: root.animateChanges; NumberAnimation { duration: Style.duration(160); easing.type: Easing.OutCubic } }
+    Behavior on scale { enabled: root.animateChanges; NumberAnimation { duration: Style.duration(180); easing.type: Easing.OutCubic } }
     anchors.centerIn: parent
     width: parent.width * 0.7; height: Math.min(parent.height - 65, 235)
     z: 5; radius: 10; color: Qt.tint(root.background, Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.05)); border.color: root.accent

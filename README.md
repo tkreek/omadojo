@@ -33,12 +33,16 @@ Then run `hyprctl reload` and `hyprctl configerrors`. Installing Omadojo itself 
 
 1. Press **1–7** or click a category: **All shortcuts**, **Applications**, **Windows**, **Workspaces**, **Navigation**, **Desktop**, or **Plugins**.
 2. Pick a 15- or 30-prompt round and press **Enter**.
-3. Compare the detailed **Current** and **Target** desktops, then perform the action shown using its Omarchy keyboard shortcut. The action happens in the simulated desktop.
+3. Watch one simulated desktop demonstrate the action on a loop, then perform the action shown using its Omarchy keyboard shortcut. The action happens in the simulated desktop.
 4. See completion time, accuracy, average response time, shortcuts per minute, best streak, and points at the end.
 
 **Escape** exits at any time. **Ctrl + Alt + Escape** is an independent compositor-level escape hatch while practice is active. The mouse Exit button also works.
 
 Wrong chords count as misses and leave the current prompt in place. Revealing a shortcut costs one miss and breaks the streak. Modifier-only presses and held-key repeats do not count. Scores are per round and stay in memory; no input or score history is recorded to disk.
+
+The preview pauses in its starting state, animates the action, holds the result,
+and repeats. A correct answer holds the completed state before the next prompt.
+With reduced motion enabled, it shows the goal without looping.
 
 ### Your actual shortcuts
 
@@ -107,7 +111,7 @@ After QML changes, restart the shell if a rescan keeps an older component instan
 ### Structure
 
 - `Dojo.qml`: overlay, input grading, round lifecycle, and live shortcut discovery.
-- `DesktopScene.qml`, `SimDesktop.qml`, `SimWindow.qml`: side-by-side current/target desktops with titlebars, workspace indicators, a dock, and terminal, browser, editor, files, calculator, and music content; no real window actions.
+- `DesktopScene.qml`, `SimDesktop.qml`, `SimWindow.qml`: a single looping desktop demonstration with titlebars, workspace indicators, a dock, and terminal, browser, editor, files, calculator, and music content; no real window actions.
 - `Engine.js`: pure scoring, chord matching, and shuffled rounds.
 - `Lessons.js`: curated action descriptions and visual tasks.
 - `capture.py`: temporary submap owner and independent input recovery watchdog.

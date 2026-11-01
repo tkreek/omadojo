@@ -1,4 +1,5 @@
 import QtQuick
+import qs.Commons
 
 Rectangle {
   id: root
@@ -13,6 +14,7 @@ Rectangle {
   color: Qt.tint(background, Qt.rgba(foreground.r, foreground.g, foreground.b, 0.04))
   border.width: active ? 2 : 1
   border.color: active ? accent : Qt.rgba(foreground.r, foreground.g, foreground.b, 0.2)
+  Behavior on border.color { ColorAnimation { duration: Style.duration(160) } }
   Rectangle {
     x: 2; y: 2; width: parent.width - 4; height: 23
     color: root.active ? Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.13) : Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.03)

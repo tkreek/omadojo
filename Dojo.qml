@@ -320,6 +320,7 @@ Item {
               Layout.fillWidth: true; Layout.fillHeight: true; Layout.minimumHeight: 130
               scene: root.practicing && root.prompt ? root.prompt.scene : "welcome"
               glyph: root.practicing && root.prompt ? root.prompt.glyph : root.phase === "results" ? "✓" : "◈"
+              lessonToken: root.practicing && root.prompt ? root.prompt.id + "-" + root.index : "welcome"
               applicationId: root.practicing && root.prompt ? root.prompt.id : "terminal"
               appLabel: root.practicing && root.prompt ? root.prompt.label : "Omadojo"
               solved: root.solved || root.phase === "results"
