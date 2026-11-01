@@ -6,9 +6,11 @@
   "author": "Thomas Kreek",
   "description": "Build Omarchy muscle memory with visual shortcut drills, time and accuracy scores, and a simulated desktop.",
   "kinds": [
-    "overlay"
+    "overlay",
+    "service"
   ],
   "entryPoints": {
-    "overlay": "Dojo.qml"
+    "overlay": "Dojo.qml",
+    "service": "Service.qml"
   }
 }
