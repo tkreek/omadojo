@@ -34,6 +34,9 @@ function resolve(lessons, bindings) {
     return result
   }).filter(function(lesson) { return lesson !== null })
 }
+function categoryItems(items, category) {
+  return items.filter(function(item) { return category === 'All shortcuts' || item.category === category })
+}
 function shuffle(items, random) {
   var out = items.slice()
   for (var i = out.length - 1; i > 0; i--) {
@@ -75,4 +78,4 @@ function stats(state, now) {
     perMinute: seconds > 0 ? state.correct * 60 / seconds : 0,
     score: Math.round(state.correct * 100 * accuracy + state.bestStreak * 10) }
 }
-if (typeof module !== 'undefined') module.exports = { normalizedKey: normalizedKey, chord: chord, bindingKey: bindingKey, usable: usable, resolve: resolve, shuffle: shuffle, deck: deck, initial: initial, hint: hint, answer: answer, stats: stats }
+if (typeof module !== 'undefined') module.exports = { normalizedKey: normalizedKey, chord: chord, bindingKey: bindingKey, usable: usable, resolve: resolve, categoryItems: categoryItems, shuffle: shuffle, deck: deck, initial: initial, hint: hint, answer: answer, stats: stats }

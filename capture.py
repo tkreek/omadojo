@@ -38,6 +38,21 @@ end
 '''
 
 
+CURSOR_SETUP = '''
+if _G.omadojo_cursor then error("Omadojo already owns cursor visibility") end
+_G.omadojo_cursor = { hide = hl.get_config("cursor.hide_on_key_press") }
+hl.config({ cursor = { hide_on_key_press = false } })
+'''
+CURSOR_CLEANUP = '''
+if _G.omadojo_cursor then
+  -- If another tool changed the setting meanwhile, leave its value alone.
+  if hl.get_config("cursor.hide_on_key_press") == false then
+    hl.config({ cursor = { hide_on_key_press = _G.omadojo_cursor.hide } })
+  end
+  _G.omadojo_cursor = nil
+end
+'''
+
 def hypr_eval(code):
     result = subprocess.run(['hyprctl', 'eval', code], capture_output=True, text=True, timeout=3)
     if result.returncode != 0 or result.stdout.strip() != 'ok':
@@ -67,12 +82,12 @@ def main():
     # watchdog in a separate session: pipe EOF or heartbeat timeout still
     # restores input even when the QProcess child is killed without cleanup.
     if '--worker' not in sys.argv and '--restore' not in sys.argv:
-        worker = subprocess.Popen([sys.executable, __file__, '--worker'],
+        worker = subprocess.Popen([sys.executable, __file__, '--worker'] + sys.argv[1:],
                                   stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr,
                                   start_new_session=True)
         return worker.wait()
     if '--restore' in sys.argv:
-        hypr_eval(CLEANUP)
+        hypr_eval(CLEANUP + CURSOR_CLEANUP)
         return
     def stop(*_):
         raise SystemExit(0)
@@ -81,18 +96,21 @@ def main():
     # Set only once this process owns capture, so a second invocation never
     # tears down the first session when it fails to start.
     owned = False
+    cursor_only = '--cursor' in sys.argv
+    setup = CURSOR_SETUP if cursor_only else SETUP
+    cleanup = CURSOR_CLEANUP if cursor_only else CLEANUP
     try:
-        hypr_eval(SETUP)
+        hypr_eval(setup)
         owned = True
         print(json.dumps({'ready': True}), flush=True)
-        supervise(sys.stdin.buffer)
+        supervise(sys.stdin.buffer, max_duration=3600 if cursor_only else 600)
     except Exception as error:
         print(json.dumps({'error': str(error)}), flush=True)
         return 1
     finally:
         if owned:
             try:
-                hypr_eval(CLEANUP)
+                hypr_eval(cleanup)
             except Exception as error:
                 print('Omadojo restore: ' + str(error), file=sys.stderr)
     return 0

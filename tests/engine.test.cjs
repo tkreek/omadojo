@@ -43,3 +43,11 @@ test('lesson definitions have unique ids and complete visual prompts',()=>{
  assert.equal(new Set(lessons.map(x=>x.id)).size,lessons.length);
  for(const l of lessons) for(const key of ['id','description','category','title','detail','scene','glyph','label']) assert.ok(l[key]);
 });
+test('category-specific rounds never include another category',()=>{
+ const available = [ {id:'a',category:'Applications'}, {id:'b',category:'Workspaces'}, {id:'c',category:'Applications'} ];
+ const selected = E.categoryItems(available,'Applications');
+ assert.deepEqual(selected.map(x=>x.id),['a','c']);
+ assert.ok(E.deck(selected,30,Math.random).every(x=>x.category==='Applications'));
+ assert.deepEqual(E.categoryItems(available,'Plugins'),[]);
+ assert.deepEqual(E.categoryItems(available,'All shortcuts'),available);
+});

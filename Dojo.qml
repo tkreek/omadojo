@@ -16,7 +16,7 @@ Item {
   property bool opened: false
   property string phase: "ready"
   property string category: "All shortcuts"
-  property var categories: ["All shortcuts", "Essentials", "Launch", "Windows", "Navigation", "Workspaces", "Plugins"]
+  property var categories: ["All shortcuts", "Applications", "Windows", "Workspaces", "Navigation", "Desktop", "Plugins"]
   property var available: []
   property var round: []
   property int index: 0
@@ -43,11 +43,13 @@ Item {
     error = ""
     phase = "loading"
     bindings.running = true
+    if (!cursorGuard.running) cursorGuard.running = true
     Qt.callLater(function() { catcher.forceActiveFocus() })
   }
   function close() {
     advance.stop()
     opened = false
+    if (cursorGuard.running) cursorGuard.write("stop\n")
     releaseCapture()
     phase = "ready"
   }
@@ -59,7 +61,7 @@ Item {
   function releaseCapture() { if (capture.running) capture.write("stop\n") }
   function start() {
     if (phase !== "ready" && phase !== "results") return
-    var pool = available.filter(function(item) { return category === "All shortcuts" || item.category === category })
+    var pool = Engine.categoryItems(available, category)
     if (!pool.length) { error = t("noLessons"); return }
     advance.stop()
     round = Engine.deck(pool, roundLength, Math.random)
@@ -134,6 +136,19 @@ Item {
     onExited: function(code) { if (code !== 0) { phase = "blocked"; error = t("readFailed") } }
   }
   Process {
+    id: cursorGuard
+    command: ["python3", Qt.resolvedUrl("capture.py").toString().replace(/^file:\/\//, ""), "--cursor"]
+    stdinEnabled: true
+    stdout: SplitParser {
+      onRead: function(data) {
+        try { var result = JSON.parse(data); if (result.error) root.error = result.error }
+        catch (e) { console.warn("Omadojo cursor guard:", String(e)) }
+      }
+    }
+  }
+  Timer { interval: 1000; repeat: true; running: cursorGuard.running && opened; onTriggered: cursorGuard.write("heartbeat\n") }
+
+  Process {
     id: capture
     command: ["python3", Qt.resolvedUrl("capture.py").toString().replace(/^file:\/\//, "")]
     stdinEnabled: true
@@ -177,7 +192,10 @@ Item {
       }
     }
   }
-  Component.onDestruction: releaseCapture()
+  Component.onDestruction: {
+    releaseCapture()
+    if (cursorGuard.running) cursorGuard.write("stop\n")
+  }
 
   PanelWindow {
     id: window
@@ -193,6 +211,7 @@ Item {
       id: catcher
       anchors.fill: parent
       focus: true
+      HoverHandler { cursorShape: Qt.ArrowCursor }
       Keys.onPressed: function(event) {
         event.accepted = true
         if (event.isAutoRepeat) return
@@ -200,6 +219,10 @@ Item {
         if ([Qt.Key_Shift, Qt.Key_Control, Qt.Key_Alt, Qt.Key_Meta, Qt.Key_Super_L, Qt.Key_Super_R, Qt.Key_CapsLock].indexOf(event.key) >= 0) return
         if (root.practicing) root.submit(root.eventChord(event))
         else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) root.start()
+        else if (root.phase === "ready" || root.phase === "results") {
+          if (event.modifiers === Qt.NoModifier && event.key >= Qt.Key_1 && event.key <= Qt.Key_7)
+            root.category = root.categories[event.key - Qt.Key_1]
+        }
       }
       Keys.onReleased: function(event) { event.accepted = true }
 
@@ -243,20 +266,33 @@ Item {
           }
         }
 
+        Text {
+          Layout.fillWidth: true
+          text: root.practicing ? root.t("practicingCategory") + " " + root.category : root.t("chooseCategory")
+          color: root.fg; font.pixelSize: 14; font.weight: Font.DemiBold; textFormat: Text.PlainText
+        }
         RowLayout {
-          visible: root.phase === "ready" || root.phase === "loading" || root.phase === "blocked"
           Layout.fillWidth: true
           spacing: 7
           Repeater {
             model: root.categories
             DojoButton {
               required property string modelData
-              label: modelData; selected: root.category === modelData
+              label: (root.categories.indexOf(modelData) + 1) + "  " + modelData + " · " + Engine.categoryItems(root.available, modelData).length
+              selected: root.category === modelData
+              opacity: 1
+              enabled: !root.practicing && root.phase !== "arming"
               onClicked: { root.category = modelData; root.error = ""; catcher.forceActiveFocus() }
             }
           }
           Item { Layout.fillWidth: true }
-          DojoButton { label: root.roundLength + " " + root.t("rounds"); onClicked: root.roundLength = root.roundLength === 15 ? 30 : 15 }
+          DojoButton { label: root.roundLength + " " + root.t("rounds"); enabled: !root.practicing && root.phase !== "arming"; onClicked: root.roundLength = root.roundLength === 15 ? 30 : 15 }
+        }
+
+        Text {
+          Layout.fillWidth: true; wrapMode: Text.Wrap
+          text: root.t("category" + root.category.replace(/ /g, ""))
+          color: root.muted; font.pixelSize: 12; textFormat: Text.PlainText
         }
 
         Rectangle {
@@ -284,6 +320,7 @@ Item {
               Layout.fillWidth: true; Layout.fillHeight: true; Layout.minimumHeight: 130
               scene: root.practicing && root.prompt ? root.prompt.scene : "welcome"
               glyph: root.practicing && root.prompt ? root.prompt.glyph : root.phase === "results" ? "✓" : "◈"
+              applicationId: root.practicing && root.prompt ? root.prompt.id : "terminal"
               appLabel: root.practicing && root.prompt ? root.prompt.label : "Omadojo"
               solved: root.solved || root.phase === "results"
               accent: root.accent; foreground: root.fg; background: root.bg

@@ -31,9 +31,9 @@ Then run `hyprctl reload` and `hyprctl configerrors`. Installing Omadojo itself 
 
 ## Practice
 
-1. Choose **All shortcuts**, **Essentials**, **Launch**, **Windows**, **Navigation**, **Workspaces**, or **Plugins**.
+1. Press **1–7** or click a category: **All shortcuts**, **Applications**, **Windows**, **Workspaces**, **Navigation**, **Desktop**, or **Plugins**.
 2. Pick a 15- or 30-prompt round and press **Enter**.
-3. Perform the action shown using its Omarchy keyboard shortcut. The action happens in the simulated desktop.
+3. Compare the detailed **Current** and **Target** desktops, then perform the action shown using its Omarchy keyboard shortcut. The action happens in the simulated desktop.
 4. See completion time, accuracy, average response time, shortcuts per minute, best streak, and points at the end.
 
 **Escape** exits at any time. **Ctrl + Alt + Escape** is an independent compositor-level escape hatch while practice is active. The mouse Exit button also works.
@@ -61,6 +61,11 @@ hyprctl dispatch 'hl.dsp.submap("reset")'
 # Or restore and remove the temporary emergency binding:
 python3 ~/.config/omarchy/plugins/io.github.tkreek.omadojo/capture.py --restore
 ```
+
+While the overlay is open, a second scoped watchdog temporarily disables
+Hyprland's hide-cursor-on-keypress setting. Your previous cursor preference is
+restored on close or process failure; desktop config files are never edited.
+The pointer uses an explicit arrow shape over the practice surface.
 
 Only the active practice session captures keys. Closing the overlay returns keyboard focus to your desktop. The plugin has no network access of its own and does not log typed input.
 
@@ -102,7 +107,7 @@ After QML changes, restart the shell if a rescan keeps an older component instan
 ### Structure
 
 - `Dojo.qml`: overlay, input grading, round lifecycle, and live shortcut discovery.
-- `DesktopScene.qml`: animated mock desktop; no real window actions.
+- `DesktopScene.qml`, `SimDesktop.qml`, `SimWindow.qml`: side-by-side current/target desktops with titlebars, workspace indicators, a dock, and terminal, browser, editor, files, calculator, and music content; no real window actions.
 - `Engine.js`: pure scoring, chord matching, and shuffled rounds.
 - `Lessons.js`: curated action descriptions and visual tasks.
 - `capture.py`: temporary submap owner and independent input recovery watchdog.

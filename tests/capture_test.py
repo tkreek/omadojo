@@ -79,3 +79,20 @@ class WorkerLifecycleTests(unittest.TestCase):
                     process.stdin.close()
                 process.stdout.close()
                 process.stderr.close()
+
+class CursorScopeTests(unittest.TestCase):
+    def test_cursor_guard_does_not_capture_keyboard_and_restores_saved_value(self):
+        self.assertNotIn('define_submap', capture.CURSOR_SETUP)
+        self.assertIn('hide = hl.get_config("cursor.hide_on_key_press")', capture.CURSOR_SETUP)
+        self.assertIn('hide_on_key_press = _G.omadojo_cursor.hide', capture.CURSOR_CLEANUP)
+
+    def test_cursor_worker_cleans_up_on_normal_exit_and_errors(self):
+        import contextlib
+        import io
+        for failure in (False, True):
+            with self.subTest(failure=failure), patch.object(sys, 'argv', ['capture.py','--worker','--cursor']), \
+                 patch.object(capture, 'hypr_eval') as evaluate, \
+                 patch.object(capture, 'supervise', side_effect=RuntimeError('connection lost') if failure else None), \
+                 patch.object(capture.signal, 'signal'), contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(capture.main(), 1 if failure else 0)
+                self.assertEqual([call.args[0] for call in evaluate.call_args_list], [capture.CURSOR_SETUP, capture.CURSOR_CLEANUP])
