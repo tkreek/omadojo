@@ -1,0 +1,23 @@
+{
+  "tagline": "A little practice. A lot less reaching.",
+  "noLessons": "No matching shortcuts in this deck. Choose another deck or bind these actions in Omarchy.",
+  "pluginLesson": "Use this plugin's shortcut. Omadojo will simulate the action.",
+  "universalBinds": "Practice is unavailable while universal submap shortcuts are configured. They bypass keyboard capture. Remove their submap_universal flag before training.",
+  "readFailed": "Could not read your Hyprland shortcuts.",
+  "captureFailed": "Could not start keyboard capture. Your shortcuts remain available.",
+  "captureEnded": "Practice stopped and desktop shortcuts were released. Start a new round when ready.",
+  "captureActive": "● PRACTICE CAPTURE ACTIVE",
+  "practiceSpace": "YOUR SHORTCUT PRACTICE SPACE",
+  "exit": "Esc · Exit",
+  "time": "Time", "accuracy": "Accuracy", "streak": "Streak", "progress": "Progress",
+  "rounds": "prompts", "roundComplete": "ROUND COMPLETE", "challenge": "CHALLENGE",
+  "welcome": "BUILD YOUR MUSCLE MEMORY", "points": "points", "headline": "Make your keyboard feel like home.",
+  "average": "average response", "perMinute": "shortcuts / min", "bestStreak": "Best streak",
+  "intro": "See a task. Press its shortcut. Build speed, one good repetition at a time.",
+  "correct": "✓  NICE MOVE", "tryAgain": "Try again ·", "yourMove": "Your move. Press the shortcut.",
+  "startNote": "Practice uses a simulated desktop. Your real apps stay where they are.",
+  "hint": "Reveal shortcut · costs one miss", "loading": "Reading shortcuts…", "arming": "Starting keyboard capture…",
+  "again": "Enter · Practice again", "start": "Enter · Start practice",
+  "footer": "Esc exits anytime  ·  Ctrl + Alt + Esc releases capture  ·  Hints count as misses",
+  "available": "shortcuts ready"
+}
