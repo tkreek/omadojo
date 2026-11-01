@@ -326,6 +326,7 @@ Item {
         // Top bar: brand, mode, decks, live stats, round size, exit.
         RowLayout {
           Layout.fillWidth: true
+          Layout.fillHeight: false
           spacing: 8
           Text { text: "◈"; color: root.accent; font.pixelSize: 18; textFormat: Text.PlainText }
           Text { text: "OMADOJO"; color: root.fg; font.pixelSize: 13; font.weight: Font.Bold; font.letterSpacing: 3; textFormat: Text.PlainText; Layout.rightMargin: 8 }
@@ -494,6 +495,9 @@ Item {
         // Feedback and actions in a single row.
         RowLayout {
           Layout.alignment: Qt.AlignHCenter
+          // Nested layouts fill height by default; keep this row fixed so the
+          // desktop gets the spare space even when the row is empty.
+          Layout.fillHeight: false
           Layout.preferredHeight: 40
           spacing: 14
           Text {

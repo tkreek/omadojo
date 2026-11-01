@@ -4,7 +4,7 @@
 
 ![Omadojo practice screen](preview.png)
 
-See a visual task, press the right shortcut, and watch the simulated desktop respond. Train your speed and accuracy without closing, moving, or launching your real applications.
+See a task, press the shortcut, and watch a simulated Omarchy desktop respond. Learn new shortcuts with guided keys and a goal preview, drill the ones you miss until they stick, then race for speed — without closing, moving, or launching your real applications.
 
 ## Install
 
@@ -14,7 +14,7 @@ Requires Omarchy's Quickshell plugin system, **Hyprland with Lua configuration**
 omarchy plugin add https://github.com/tkreek/omadojo.git --enable
 ```
 
-Open **Omadojo** from the Omarchy menu, or run:
+Open **Omadojo** from the app launcher (search "Omadojo" or "shortcuts"), or run:
 
 ```sh
 omarchy-shell shell toggle io.github.tkreek.omadojo
@@ -27,28 +27,37 @@ If you want a dedicated shortcut, add an unused combination to `~/.config/hypr/b
 o.bind("SUPER + CTRL + ALT + D", "Omadojo", { panel = "io.github.tkreek.omadojo" })
 ```
 
-Then run `hyprctl reload` and `hyprctl configerrors`. Installing Omadojo itself does not edit your Hyprland config or add a global shortcut.
+Then run `hyprctl reload` and `hyprctl configerrors`. Installing Omadojo itself does not edit your Hyprland config or add a global shortcut. A small service keeps a launcher entry at `~/.local/share/applications/omadojo.desktop`; it only rewrites a file carrying its `X-Omadojo-Managed` marker, so an edited copy is left alone.
 
 ## Practice
 
-1. Press **1–7** or click a category: **All shortcuts**, **Applications**, **Windows**, **Workspaces**, **Navigation**, **Desktop**, or **Plugins**.
-2. Pick a 15- or 30-prompt round and press **Enter**.
-3. Watch one simulated desktop demonstrate the action on a loop, then perform the action shown using its Omarchy keyboard shortcut. The action happens in the simulated desktop.
-4. See completion time, accuracy, average response time, shortcuts per minute, best streak, and points at the end.
+1. Choose **Learn** or **Race** (**Tab** switches).
+2. Pick a deck from the deck menu (**D**, or **1–9**, **0**): **All shortcuts**, **Applications**, **Windows**, **Navigation**, **Resize**, **Workspaces**, **Groups**, **Desktop**, **More**, **Plugins**, and **Mistakes** once you have some.
+3. Choose 10, 20 or 30 prompts and press **Enter**.
+4. Perform the task shown with its keyboard shortcut. The action happens on the simulated desktop.
 
 **Escape** exits at any time. **Ctrl + Alt + Escape** is an independent compositor-level escape hatch while practice is active. The mouse Exit button also works.
 
-Wrong chords count as misses and leave the current prompt in place. Revealing a shortcut costs one miss and breaks the streak. Modifier-only presses and held-key repeats do not count. Scores are per round and stay in memory; no input or score history is recorded to disk.
+### Learn mode
 
-The preview pauses in its starting state, animates the action, holds the result,
-and repeats. A correct answer holds the completed state before the next prompt.
-With reduced motion enabled, it shows the goal without looping.
+- New and weak shortcuts show their keys; once you answer a shortcut cleanly twice it must come from memory (**H** reveals it, counted as a miss).
+- A small **Goal** window plays the action three times, then offers **Replay**.
+- A wrong shortcut plays what that shortcut actually does on the desktop, flashes red, and names it. The goal then replays.
+- Missed shortcuts return a few prompts later with their keys hidden.
+- Rounds favour weak and missed shortcuts; large permutation families (workspaces 1–10, resize sizes) share their weight so they do not crowd out the rest.
+- Each shortcut climbs a five-step mastery ladder. Progress, including what you pressed instead, is saved to `~/.local/state/omadojo/progress.json`. The round review lists every miss, what you pressed, and the right keys; **M** practises your mistakes.
+
+### Race mode
+
+Recall only: no guided keys or preview, a fast pace, and time, accuracy and streak in the top bar.
+
+Keys pressed without Super, Ctrl or Alt are ignored rather than graded. Held-key repeats do not count. Shortcuts with several bindings (for example Close window on Super + W and Super + Q) accept any of them.
 
 ### Your actual shortcuts
 
-Omadojo reads `hyprctl binds -j` when you open it. Lessons match action descriptions, so a customized chord is used when its description matches. Actions that are not bound are left out.
+Omadojo reads `hyprctl binds -j` and `hyprctl binds` when you open it. Lessons match action descriptions, so customised chords are used and unbound actions are left out. Bindings declared by keycode (`code:11`, as Omarchy does for workspaces and resizing) are recovered from the text output, and number keys are matched by keycode so they work on any layout.
 
-The **Plugins** deck discovers described, keyboard-bound shell/plugin actions from your live bindings. It can teach a plugin's launch/toggle shortcut; it does **not** automatically understand arbitrary controls inside each plugin. Bindings without suitable descriptions or unsupported key symbols are omitted. This release supports Super-based, single-key chords; described bindings in other submaps, mouse binds, release-only binds, and media keys are excluded.
+Hand-written lessons cover applications, every window action, focus and swap in four directions, all twelve resize variants, workspaces 1–10 (switch, move, move silently), scratchpad and Quake console, groups, menus, bar panels, notifications, clipboard and capture. Every other described binding becomes a lesson in **More** (or **Plugins** for plugin toggles), so nothing you have bound is left out. Mouse binds, release-only binds, media keys, lone modifiers and bindings in other submaps are excluded.
 
 ## Keyboard takeover and recovery
 
@@ -71,7 +80,7 @@ Hyprland's hide-cursor-on-keypress setting. Your previous cursor preference is
 restored on close or process failure; desktop config files are never edited.
 The pointer uses an explicit arrow shape over the practice surface.
 
-Only the active practice session captures keys. Closing the overlay returns keyboard focus to your desktop. The plugin has no network access of its own and does not log typed input.
+Only the active practice session captures keys. Closing the overlay returns keyboard focus to your desktop. The plugin has no network access of its own and does not log typed input; the only thing it stores is per-shortcut mastery in `~/.local/state/omadojo/progress.json` (delete it to start fresh).
 
 ## Update / remove
 
@@ -96,7 +105,7 @@ An optional GitHub Actions workflow is in `contrib/github-actions-test.yml`; mov
 to `.github/workflows/test.yml` using credentials with the `workflow` permission
 to enable CI.
 
-The tests cover customized binding discovery, chord normalization, scoring, hints, deck generation, watchdog timeouts, and process-death recovery using a fake `hyprctl`. They do not capture your real keyboard.
+The tests cover binding discovery (including keycode recovery and multi-chord shortcuts), chord normalisation, scoring, hints, the mastery ladder, weighted and requeued rounds, that every lesson animates a visible change and every permutation looks distinct, watchdog timeouts, and process-death recovery using a fake `hyprctl`. They do not capture your real keyboard.
 
 For a local checkout, link it into your plugin directory, rescan, then enable it once discovery finishes:
 
@@ -110,10 +119,14 @@ After QML changes, restart the shell if a rescan keeps an older component instan
 
 ### Structure
 
-- `Dojo.qml`: overlay, input grading, round lifecycle, and live shortcut discovery.
-- `DesktopScene.qml`, `SimDesktop.qml`, `SimWindow.qml`: a single looping desktop demonstration with titlebars, workspace indicators, a dock, and terminal, browser, editor, files, calculator, and music content; no real window actions.
-- `Engine.js`: pure scoring, chord matching, and shuffled rounds.
-- `Lessons.js`: curated action descriptions and visual tasks.
+- `Dojo.qml`: overlay, Learn/Race modes, input grading, round lifecycle, progress storage and live shortcut discovery.
+- `DesktopScene.qml`: the practice desktop, wrong-shortcut playback, and the goal preview.
+- `SimDesktop.qml`, `SimWindow.qml`: renders a scene as an Omarchy desktop (default bar, Hyprland tiling, groups, menus, panels, toasts, lock screen) with recognisable terminal, browser, files, Neovim, Obsidian, calculator and music windows.
+- `Scenes.js`: pure before/after description of every lesson's desktop.
+- `Engine.js`: chord matching, binding discovery, scoring, mastery and round building.
+- `Lessons.js`: lesson catalogue, generated in permutation families.
+- `KeyCaps.qml`, `DojoButton.qml`: small UI components.
+- `Service.qml`: keeps the launcher entry in sync at shell startup.
 - `capture.py`: temporary submap owner and independent input recovery watchdog.
 - `i18n/en.json`: UI strings, using Omarchy's translation fallback.
 
